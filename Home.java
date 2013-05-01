@@ -2,21 +2,106 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package ucmerced_timetables;
 
+package src;
+import java.sql.*;
+import javax.swing.*;
+import net.proteanit.sql.DbUtils;
 /**
  *
  * @author Jonathan
  */
 public class Home extends javax.swing.JFrame {
-
-    /**
-     * Creates new form NewJFrame
+    /*
+     * This must be in the begining of all of your pages
+     *!!!!look under contactActionPerformed to look how to use buttons!!!!!!
      */
-    public Home() {
-        initComponents();
-    }
+    Connection conn = null;//allows us to connect to the database
+    ResultSet rs = null;
+    PreparedStatement ps = null;
+    int userId;
+    int service_id;
+    String item[];
+    String selectedItem;
+    //JComboBox buildings_list = new JComboBox(item);
 
+    public Home(int userId) {//this stuff runs when the page loads
+        this.userId = userId;
+        initComponents();
+        conn = connect.connect();
+        Update_table();//updates the table to get all the favorites
+        Update_Name();//changes the name on the page to the users name
+        box();
+        
+    }
+    public void Getting_userId(int userId){
+        this.userId = userId;
+    }
+    private void box(){
+        try{
+            String sql = "SELECT service_name FROM services";
+            ps = conn.prepareStatement(sql);
+            rs = ps.executeQuery();
+            int index = 0;
+            while(rs.next()){
+                item[index] = rs.getString("service_name");
+                index++;
+            }
+        }
+         catch(Exception e){//if the sql stament is wrong or errors it will throw exception
+            JOptionPane.showMessageDialog(null, e);
+        }finally{
+            try{
+                rs.close();//always close these after every sql statment to prevent locks
+                ps.close();
+            }
+            catch(Exception e){//if cannot close will throw exception
+                JOptionPane.showMessageDialog(null, e);
+            }
+        }
+    }
+    private void Update_Name(){//this is changing the text field to the user's name
+        try{
+            String sql = "SELECT user_name FROM user WHERE user_id = " +userId+";";//sql statement
+            ps = conn.prepareStatement(sql);
+            rs = ps.executeQuery();
+            if(rs.next()){
+                String i = rs.getString("user_name");
+                name_field.setText(i);//setting the name_field to the user name, will change the text of that field
+            }
+        }
+        catch(Exception e){//if the sql stament is wrong or errors it will throw exception
+            JOptionPane.showMessageDialog(null, e);
+        }finally{
+            try{
+                rs.close();//always close these after every sql statment to prevent locks
+                ps.close();
+            }
+            catch(Exception e){//if cannot close will throw exception
+                JOptionPane.showMessageDialog(null, e);
+            }
+        }
+            
+    }
+    
+    private void Update_table(){//this is how you update a table
+       try{
+        
+        String sql = "SELECT service_name,time_opens,time_close,time_week,time_day FROM ( SELECT fav_serviceid FROM fav WHERE fav_userid = "+ userId+ ") AS favorite,services, times WHERE favorite.fav_serviceid = time_serviceid  AND service_id = favorite.fav_serviceid  AND service_id = time_serviceid;";
+        ps = conn.prepareStatement(sql);
+        rs = ps.executeQuery();
+        Fav_Table.setModel(DbUtils.resultSetToTableModel(rs));
+       
+       
+       }
+       catch(Exception e){
+           JOptionPane.showMessageDialog(null,e);
+       }finally {
+            try{
+                rs.close(); 
+                ps.close(); }
+            catch(Exception e) { } } 
+    }
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -27,92 +112,114 @@ public class Home extends javax.swing.JFrame {
     private void initComponents() {
 
         jScrollPane1 = new javax.swing.JScrollPane();
-        jTable1 = new javax.swing.JTable();
-        jLabel2 = new javax.swing.JLabel();
+        Fav_Table = new javax.swing.JTable();
+        name_field = new javax.swing.JLabel();
         jLabel1 = new javax.swing.JLabel();
-        jComboBox1 = new javax.swing.JComboBox();
-        jButton1 = new javax.swing.JButton();
-        jButton5 = new javax.swing.JButton();
-        jButton4 = new javax.swing.JButton();
-        jButton2 = new javax.swing.JButton();
-        jButton3 = new javax.swing.JButton();
+        buildings_list = new javax.swing.JComboBox();
+        settings = new javax.swing.JButton();
+        search_box = new javax.swing.JButton();
+        log_out = new javax.swing.JButton();
+        contact = new javax.swing.JButton();
+        jLabel2 = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
-        jTable1.setModel(new javax.swing.table.DefaultTableModel(
+        Fav_Table.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
-                {null, null, null, null},
-                {null, null, null, null},
-                {null, null, null, null},
-                {null, null, null, null}
+                {null, null, null, null, null},
+                {null, null, null, null, null},
+                {null, null, null, null, null},
+                {null, null, null, null, null}
             },
             new String [] {
-                "Title 1", "Title 2", "Title 3", "Title 4"
+                "Building", "Opening", "Closing", "Time of Day", "Day of Week"
             }
         ));
-        jScrollPane1.setViewportView(jTable1);
+        jScrollPane1.setViewportView(Fav_Table);
 
-        jLabel2.setText("jLabel2");
+        name_field.setText("jLabel2");
 
-        jLabel1.setText("Welcome");
+        jLabel1.setText("Welcome:");
 
-        jComboBox1.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
+        buildings_list.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
 
-        jButton1.setText("jButton1");
+        settings.setText("Settings");
+        settings.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                settingsActionPerformed(evt);
+            }
+        });
 
-        jButton5.setText("jButton5");
+        search_box.setText("Search");
+        search_box.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                search_boxActionPerformed(evt);
+            }
+        });
 
-        jButton4.setText("jButton4");
+        log_out.setText("Log Out");
+        log_out.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                log_outActionPerformed(evt);
+            }
+        });
 
-        jButton2.setText("jButton2");
+        contact.setText("Contact Us");
+        contact.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                contactActionPerformed(evt);
+            }
+        });
 
-        jButton3.setText("jButton3");
+        jLabel2.setFont(new java.awt.Font("Tempus Sans ITC", 1, 24)); // NOI18N
+        jLabel2.setText("Home");
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                        .addGap(0, 0, Short.MAX_VALUE)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 452, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addGroup(layout.createSequentialGroup()
-                                .addComponent(jComboBox1, javax.swing.GroupLayout.PREFERRED_SIZE, 156, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                                .addComponent(jButton5)))
-                        .addGap(32, 32, 32))
+                        .addComponent(buildings_list, javax.swing.GroupLayout.PREFERRED_SIZE, 156, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(search_box)
+                        .addGap(253, 253, 253))
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                        .addComponent(jButton2)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(jButton1)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(jButton3)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(jLabel1)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(jLabel2)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jButton4)
+                        .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 474, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addContainerGap())))
+            .addGroup(layout.createSequentialGroup()
+                .addGap(18, 18, 18)
+                .addComponent(jLabel2, javax.swing.GroupLayout.PREFERRED_SIZE, 81, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(settings)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(contact)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(jLabel1)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(name_field)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(log_out)
+                .addContainerGap())
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                        .addComponent(jLabel1)
+                        .addComponent(name_field)
+                        .addComponent(log_out)
+                        .addComponent(contact)
+                        .addComponent(settings))
+                    .addComponent(jLabel2, javax.swing.GroupLayout.PREFERRED_SIZE, 27, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(40, 40, 40)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel1)
-                    .addComponent(jLabel2)
-                    .addComponent(jButton4)
-                    .addComponent(jButton2)
-                    .addComponent(jButton1)
-                    .addComponent(jButton3))
-                .addGap(44, 44, 44)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jComboBox1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jButton5))
+                    .addComponent(buildings_list, javax.swing.GroupLayout.PREFERRED_SIZE, 23, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(search_box))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 34, Short.MAX_VALUE)
                 .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 92, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(73, 73, 73))
@@ -120,7 +227,66 @@ public class Home extends javax.swing.JFrame {
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
+/*
+ * these next private voids are the actions that are performed when
+ * user pushes a button
+ */
+    private void settingsActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_settingsActionPerformed
+        try{
+                rs.close(); 
+                ps.close(); }
+            catch(Exception e) { } 
+        //ServicePage x = new ServicePage(service_id);
+        //x.setVisible(true);
+        this.dispose();
+    }//GEN-LAST:event_settingsActionPerformed
 
+    private void contactActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_contactActionPerformed
+        try{//this is to make sure before you move to next page, you let go of all resources
+                conn.close();
+                rs.close(); 
+                ps.close(); }
+            catch(Exception e) { } 
+         Contact_Us x = new Contact_Us(userId);//x is now a object of type of the page you want to go to
+        x.setVisible(true);//sets the next page visibility to true
+        this.dispose();//this makes it so the current page closes when you switch to the next page
+    }//GEN-LAST:event_contactActionPerformed
+
+    private void log_outActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_log_outActionPerformed
+        try{
+                conn.close();
+                rs.close(); 
+                ps.close(); }
+        catch(Exception e) { } 
+        Login x = new Login();
+        x.setVisible(true);
+        this.dispose();
+    }//GEN-LAST:event_log_outActionPerformed
+
+    private void search_boxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_search_boxActionPerformed
+        Object selectedItemObj = buildings_list.getSelectedItem();
+        if(selectedItemObj != null){
+            selectedItem = selectedItemObj.toString();
+        }
+        try{
+            String sql = "SELECT service_id FROM services WHERE service_name = "+ selectedItem +";";
+            ps = conn.prepareStatement(sql);
+            rs = ps.executeQuery();
+            if(rs.next()){
+                String i = rs.getString("service_id");
+                service_id = Integer.parseInt(i);
+            }
+            conn.close();
+            rs.close();
+            ps.close();
+        }
+        catch(Exception e){}
+        ServicePage x = new ServicePage(userId,service_id);
+        x.setVisible(true);
+        this.dispose();
+    }//GEN-LAST:event_search_boxActionPerformed
+    
+    
     /**
      * @param args the command line arguments
      */
@@ -151,20 +317,20 @@ public class Home extends javax.swing.JFrame {
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
-                new Home().setVisible(true);
+                //new Home().setVisible(true);
             }
         });
     }
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JButton jButton1;
-    private javax.swing.JButton jButton2;
-    private javax.swing.JButton jButton3;
-    private javax.swing.JButton jButton4;
-    private javax.swing.JButton jButton5;
-    private javax.swing.JComboBox jComboBox1;
+    private javax.swing.JTable Fav_Table;
+    private javax.swing.JComboBox buildings_list;
+    private javax.swing.JButton contact;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JScrollPane jScrollPane1;
-    private javax.swing.JTable jTable1;
+    private javax.swing.JButton log_out;
+    private javax.swing.JLabel name_field;
+    private javax.swing.JButton search_box;
+    private javax.swing.JButton settings;
     // End of variables declaration//GEN-END:variables
 }
