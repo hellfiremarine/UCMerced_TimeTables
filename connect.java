@@ -2,7 +2,7 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package ucmerced_timetables;
+package src;
 import java.sql.*;
 import javax.swing.*;
 
@@ -15,7 +15,7 @@ public class connect {
     public static Connection connect(){
       try{
           Class.forName("org.sqlite.JDBC");
-          Connection conn = DriverManager.getConnection("jdbc:sqlite:BaseAssult");
+          Connection conn = DriverManager.getConnection("jdbc:sqlite:TimeTables");
           
           return conn;
       }
