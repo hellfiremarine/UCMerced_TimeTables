@@ -1,8 +1,3 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
-
 package src;
 import java.sql.*;
 import javax.swing.*;
@@ -21,7 +16,7 @@ public class Home extends javax.swing.JFrame {
     PreparedStatement ps = null;
     int userId;
     int service_id;
-    String item[];
+    String item;
     String selectedItem;
     //JComboBox buildings_list = new JComboBox(item);
 
@@ -39,13 +34,15 @@ public class Home extends javax.swing.JFrame {
     }
     private void box(){
         try{
-            String sql = "SELECT service_name FROM services";
+            String sql = "SELECT * FROM services";
             ps = conn.prepareStatement(sql);
             rs = ps.executeQuery();
-            int index = 0;
+
             while(rs.next()){
-                item[index] = rs.getString("service_name");
-                index++;
+                item = rs.getString("service_name");
+                 buildings_list.addItem(item);
+                //String items = rs.getString("service_name");
+                //buildings_list.addItem(items);
             }
         }
          catch(Exception e){//if the sql stament is wrong or errors it will throw exception
@@ -141,8 +138,6 @@ public class Home extends javax.swing.JFrame {
 
         jLabel1.setText("Welcome:");
 
-        buildings_list.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
-
         settings.setText("Settings");
         settings.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -232,13 +227,7 @@ public class Home extends javax.swing.JFrame {
  * user pushes a button
  */
     private void settingsActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_settingsActionPerformed
-        try{
-                rs.close(); 
-                ps.close(); }
-            catch(Exception e) { } 
-        //ServicePage x = new ServicePage(service_id);
-        //x.setVisible(true);
-        this.dispose();
+        JOptionPane.showMessageDialog(null,"This does nothing! yet....");
     }//GEN-LAST:event_settingsActionPerformed
 
     private void contactActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_contactActionPerformed
@@ -264,19 +253,16 @@ public class Home extends javax.swing.JFrame {
     }//GEN-LAST:event_log_outActionPerformed
 
     private void search_boxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_search_boxActionPerformed
-        Object selectedItemObj = buildings_list.getSelectedItem();
-        if(selectedItemObj != null){
-            selectedItem = selectedItemObj.toString();
-        }
+        String selectedItemObj = (String)buildings_list.getSelectedItem();
         try{
-            String sql = "SELECT service_id FROM services WHERE service_name = "+ selectedItem +";";
+            String sql = "SELECT service_id FROM services WHERE service_name = ?;";
             ps = conn.prepareStatement(sql);
+            ps.setString(1,selectedItemObj);
             rs = ps.executeQuery();
             if(rs.next()){
                 String i = rs.getString("service_id");
                 service_id = Integer.parseInt(i);
             }
-            conn.close();
             rs.close();
             ps.close();
         }
