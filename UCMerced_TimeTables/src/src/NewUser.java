@@ -1,9 +1,4 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package src;
-
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -14,6 +9,7 @@ import javax.swing.*;
 /**
  *
  * @author Dinesh
+ * @editor Jonathan
  */
 public class NewUser extends javax.swing.JFrame {
 
@@ -21,8 +17,7 @@ public class NewUser extends javax.swing.JFrame {
     Connection conn = null;
     ResultSet rs = null;
     PreparedStatement ps = null;
-    String id;
-    int userid;
+    String userid;
     
     /**
      * Creates new form NewUser
@@ -85,6 +80,11 @@ public class NewUser extends javax.swing.JFrame {
         });
 
         jButton2.setText("Cancel");
+        jButton2.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton2ActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -145,37 +145,40 @@ public class NewUser extends javax.swing.JFrame {
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
-    
+    /*
+     * this checks for the next avaliable userId so we
+     * can referance the users a lot easier
+     */
     private void getUserID() {
         try{
-               String sql = "Select Max(user_id) FROM users";
+               String sql = "Select max(user_id)+1 FROM user";
+               //gets the max user id and adds one to it to get the next avaliable one
                ps = conn.prepareStatement(sql);
                rs = ps.executeQuery();
                if(rs.next()) {
-                   String i = rs.getString("user_id");
-                   userid = Integer.parseInt(i);
-                   userid += 1;
+                   userid = rs.getString("max(user_id)+1");
+                   
                }
     }
-        
+        //Lawrence you can talk to me about efficiency once you can code better then me </3*
         
          catch(Exception e){
             JOptionPane.showMessageDialog(null, e);
         }
         
     }
-    
+    /*
+     * this will add the user into the database
+     */
     private void users() {
-        
-        String sql = "INSERT into users values (?,?,?)";
+        getUserID();
+        String sql = "INSERT into user values (?,?,?)";
         try {
             ps = conn.prepareStatement(sql);
-            String uid = Integer.toString(userid);
-            ps.setString(1, uid);
-            String username = text_username.getText();
-            ps.setString(2, username);
-            String password = userpass.getText();
-            ps.setString(3, password);
+            ps.setString(1, userid);
+            ps.setString(2, text_username.getText());
+            ps.setString(3, userpass.getText());
+            ps.execute();
         }
         catch(Exception e) {
             JOptionPane.showMessageDialog(null, e);
@@ -188,51 +191,51 @@ public class NewUser extends javax.swing.JFrame {
     private void userpassActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_userpassActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_userpassActionPerformed
-
+/*
+ * when the user presses the submit button
+ * it will create the user and send them to the home screen
+ */
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
 
-        
-   // TODO add your handling code here:
-        
         String pass = userpass.getText();
         String conf_pass = retypeuserpass.getText();
         
-        if(pass.equals(conf_pass)) {
+        if(pass.equals(conf_pass)) {//checks to see if the passwords are the same
             try{
-                //ps = conn.prepareStatement(sql);
-                //rs = ps.executeQuery();
                 users();
                 JOptionPane.showMessageDialog(null, "User created");
                 rs.close();
                 ps.close();
-                Home x = new Home(userid);
+                int id = Integer.parseInt(userid);
+                Home x = new Home(id);
                 x.setVisible(true);
                 this.dispose();  
-            
             }
-            
             catch(Exception e)
             {
                 JOptionPane.showMessageDialog(null, e);
-            }
-            finally {
+            }finally {
                 try {
                     rs.close();
-                    ps.close();
-                    
-                }
-                catch(Exception e){
-                    
-                }
+                    ps.close(); 
+                }catch(Exception e){ }
             }
         }
-            else{
+            else{//if the passwords do not match will tell the user
             JOptionPane.showMessageDialog(null, "The passwords don't match!!!!");
         }
-     
-        
-        
     }//GEN-LAST:event_jButton1ActionPerformed
+
+    private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
+         try{
+                conn.close();
+                rs.close(); 
+                ps.close(); }
+        catch(Exception e) { } 
+        Login x = new Login();
+        x.setVisible(true);
+        this.dispose();
+    }//GEN-LAST:event_jButton2ActionPerformed
 
     /**
      * @param args the command line arguments

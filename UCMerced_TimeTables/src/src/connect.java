@@ -1,13 +1,9 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package src;
 import java.sql.*;
 import javax.swing.*;
 
 /**
- *
+ *this connects the project to the sqlite database
  * @author jonathan
  */
 public class connect {
@@ -15,7 +11,7 @@ public class connect {
     public static Connection connect(){
       try{
           Class.forName("org.sqlite.JDBC");
-          Connection conn = DriverManager.getConnection("jdbc:sqlite:TimeTables");
+         Connection conn = DriverManager.getConnection("jdbc:sqlite:TimeTables");
           
           return conn;
       }

@@ -1,9 +1,4 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package src;
-
 import java.sql.*;
 import javax.swing.*;
 import java.awt.*;
@@ -12,6 +7,7 @@ import java.awt.event.*;
 /**
  *
  * @author Dinesh
+ * @edited Jonathan 
  */
 public class Login extends javax.swing.JFrame {
 
@@ -21,8 +17,7 @@ public class Login extends javax.swing.JFrame {
     
     Connection conn = null;
     ResultSet rs = null;
-    PreparedStatement ps = null;
-    int userID; 
+    PreparedStatement ps = null; 
     
     public Login() {
         initComponents();
@@ -133,22 +128,30 @@ public class Login extends javax.swing.JFrame {
     private void text_usernameActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_text_usernameActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_text_usernameActionPerformed
-
+/*
+ * this is when the user presses the login button
+ * will check the database if the user exists and 
+ * if the password is the same thats stored in the database
+ * 
+ * **not a secure login**
+ */
     private void login_buttonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_login_buttonActionPerformed
        
         try{ 
-            String sql = "SELECT * FROM users WHERE user_name = ? AND user_pass = ?;";
+            String sql = "SELECT * FROM user WHERE user_name = ? AND user_pass = ?;";
            ps = conn.prepareStatement(sql);
+           //the setStrings will replace the "?" in the sql
+           //statement with what is in the username text box
+           //and the password text box
            ps.setString(1,text_username.getText());
            ps.setString(2,text_password.getText());
            rs=ps.executeQuery();
-            if(rs.next()) {
+            if(rs.next()) {//if username and password is correct will go to the home screen
                 JOptionPane.showMessageDialog(null, "Username and password is correct");
-               String id = rs.getString("ID");
-                userID = Integer.parseInt(id);
+               String id = rs.getString("user_id");
+                int userID = Integer.parseInt(id);
                 ps.close();
                 rs.close();
-                close();
                 Home x = new Home(userID);
                 x.setVisible(true);
                 this.dispose();
@@ -159,17 +162,14 @@ public class Login extends javax.swing.JFrame {
         }
         
         catch(Exception e) {
-            JOptionPane.showMessageDialog(null, "it got here.");
             JOptionPane.showMessageDialog(null, e);
         }
-        
-         finally {
-            try{
-                rs.close(); 
-                ps.close(); }
-            catch(Exception e) { } }
     }//GEN-LAST:event_login_buttonActionPerformed
-
+/*
+ * if user wants to create an account he/she will select register
+ * and will bring them to the register page
+ * 
+ */
     private void registerActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_registerActionPerformed
         try{
             conn.close();
